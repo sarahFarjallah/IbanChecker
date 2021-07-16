@@ -44,6 +44,9 @@ class IbanChecker extends Component {
           var droppedFiles = e.dataTransfer.files;
           document.getElementById('fileName').textContent = droppedFiles[0].name;
         } catch (error) { ; }
+        this.setState({
+          showMessage:false
+        })
 	  }
 
 	 dragOver(e) {
@@ -54,6 +57,9 @@ class IbanChecker extends Component {
 
 	 leaveDrop(e) {
 		    document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
+        this.setState({
+          showMessage:false
+        })
     }
 
     fileContainerChangeFile=(e)=> {
@@ -71,6 +77,9 @@ class IbanChecker extends Component {
         } catch (error) {
           ;
         }
+        this.setState({
+          showMessage:false
+        })
 	  }
     /**
      * called on choosing value from drop down
@@ -80,7 +89,8 @@ class IbanChecker extends Component {
       if (e!== null) {
           this.setState({
               mode: e,
-              data:[]
+              data:[],
+              showMessage:false
           })
       }
     }
@@ -91,7 +101,8 @@ class IbanChecker extends Component {
   handleInputChange=(e)=>{
       if (e!== null) {
           this.setState({
-              account_number: $(e.currentTarget).val()
+              account_number: $(e.currentTarget).val(),
+              showMessage:false
           })
       }
   }
@@ -100,6 +111,11 @@ class IbanChecker extends Component {
    * sends an API rquest to validate 1 single iban and sets result in a data state
    */
   validateSingle=()=>{
+    if (!this.state.account_number || this.state.account_number === "") {
+      this.setState({
+        showMessage: true
+      })
+    }
       let _this = this;
       let query = {
         action: "validateSingleIBAN",
@@ -125,6 +141,11 @@ class IbanChecker extends Component {
    * sends an API request to validate list of IBANs and sets the result in data state 
    */
   validateFile=()=>{
+    if (!document.getElementById('fs').files[0]) {
+      this.setState({
+        showMessage: true
+      })
+    }
       let _this = this;
       let formData = new FormData();
       formData.append("uploadedfile",document.getElementById('fs').files[0]);
@@ -252,6 +273,7 @@ class IbanChecker extends Component {
                   </div>
                 {this.state.mode && this.state.mode.value=== _single ? singlebody : this.state.mode && this.state.mode.value === _list ? fileBody : "" }
               </div>
+              {this.state.showMessage? this.state.mode.value === _single ? <span className="red">Please enter a value</span> : <span className="red">Please upload a csv file</span> : ""}
               <div className="uk-margin-top">
                 {result}
               </div>

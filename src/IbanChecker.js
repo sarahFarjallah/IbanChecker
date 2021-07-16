@@ -188,7 +188,7 @@ class IbanChecker extends Component {
       }
       resHeader.push(
         <ul>
-          <div className={failed ? "red" : "green"}>{this.state.mode === _single ? failed ? FAILED_IBAN : PASSED_IBAN : failed ? FAILED_LIST : PASSED_LIST}</div>
+          <div className={failed ? "red" : "green"}>{this.state.mode.value === _single ? failed ? FAILED_IBAN : PASSED_IBAN : failed ? FAILED_LIST : PASSED_LIST}</div>
           {resBody}
         </ul>
       )

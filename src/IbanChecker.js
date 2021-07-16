@@ -33,95 +33,127 @@ class IbanChecker extends Component {
         };
 
     }
+
+    /**
+     * on Drop of file setting conatiner's name to file name
+     * @param {*} e 
+     */
     onDrop(e) {
-		document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
-		try {
-			var droppedFiles = e.dataTransfer.files;
-			document.getElementById('fileName').textContent = droppedFiles[0].name;
-		} catch (error) { ; }
-	}
+        document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
+        try {
+          var droppedFiles = e.dataTransfer.files;
+          document.getElementById('fileName').textContent = droppedFiles[0].name;
+        } catch (error) { ; }
+	  }
 
 	 dragOver(e) {
-		document.getElementById('fileSelectBox').classList.add( 'fileContainerDragOver' );
-		e.preventDefault();
-		e.stopPropagation();
-	}
+        document.getElementById('fileSelectBox').classList.add( 'fileContainerDragOver' );
+        e.preventDefault();
+        e.stopPropagation();
+	  }
 
 	 leaveDrop(e) {
-		document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
+		    document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
     }
 
     fileContainerChangeFile=(e)=> {
-      document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
-      try {
-        var droppedFiles = document.getElementById('fs').files;
-        document.getElementById('fileName').textContent = droppedFiles[0].name;
-      } catch (error) {;  }
+        document.getElementById('fileSelectBox').classList.remove( 'fileContainerDragOver' );
+        try {
+          var droppedFiles = document.getElementById('fs').files;
+          document.getElementById('fileName').textContent = droppedFiles[0].name;
+        } catch (error) {;  }
 
-      try {
-        var aName = document.getElementById('fs').value;
-        if (aName !== '') {
-          document.getElementById('fileName').textContent = aName.split('fakepath').replace('//','');
+        try {
+          var aName = document.getElementById('fs').value;
+          if (aName !== '') {
+            document.getElementById('fileName').textContent = aName.split('fakepath').replace('//','');
+          }
+        } catch (error) {
+          ;
         }
-      } catch (error) {
-        ;
+	  }
+    /**
+     * called on choosing value from drop down
+     * @param {*} e 
+     */
+    handleChange=(e)=>{
+      if (e!== null) {
+          this.setState({
+              mode: e,
+              data:[]
+          })
       }
-	}
-
-  validateSingle=()=>{
-    let _this = this;
-    let query = {
-      action: "validateSingleIBAN",
-      account_number:this.state.account_number
     }
-    fetch(`${url}${path}`, {mode:'cors', credentials:'include', method: "POST", body: JSON.stringify(query)})
-        .then((response)=>{    
-            if(response.status === 403) {
-            }
-            return response.json()})
-        .then((data)=>{
-            if(data){
-              _this.setState({
-                data: data
-              })
-            }
-        }).catch((error)=>{
+/**
+ * called on entering a value into iban's input 
+ * @param {*} e 
+ */
+  handleInputChange=(e)=>{
+      if (e!== null) {
+          this.setState({
+              account_number: $(e.currentTarget).val()
+          })
+      }
+  }
+
+  /**
+   * sends an API rquest to validate 1 single iban and sets result in a data state
+   */
+  validateSingle=()=>{
+      let _this = this;
+      let query = {
+        action: "validateSingleIBAN",
+        account_number:this.state.account_number
+      }
+      fetch(`${url}${path}`, {mode:'cors', credentials:'include', method: "POST", body: JSON.stringify(query)})
+          .then((response)=>{    
+              if(response.status === 403) {
+              }
+              return response.json()})
+      .then((data)=>{
+              if(data){
+                _this.setState({
+                  data: data
+                })
+              }
+      }).catch((error)=>{
+            console.log("error " + error);
+      });
+    }
+
+  /**
+   * sends an API request to validate list of IBANs and sets the result in data state 
+   */
+  validateFile=()=>{
+      let _this = this;
+      let formData = new FormData();
+      formData.append("uploadedfile",document.getElementById('fs').files[0]);
+      axios({
+        method: "post",
+        url: url+pathFile,
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+        .then((data)=> {
+          if(data.data){
+                _this.setState({
+                  data: data.data
+                })
+              }
+        })
+        .catch((error)=> {
           console.log("error " + error);
         });
-  }
-
-  validateFile=()=>{
-    let _this = this;
-    let formData = new FormData();
-    formData.append("uploadedfile",document.getElementById('fs').files[0]);
-    axios({
-      method: "post",
-      url: url+pathFile,
-      data: formData,
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-      .then((data)=> {
-        if(data.data){
-              _this.setState({
-                data: data.data
-              })
-            }
-      })
-      .catch((error)=> {
-        console.log("error " + error);
-      });
- 
-  }
+    }
 
     validate=()=> {
       let _this = this;
-      if (this.state.mode.value === _single) {
-        _this.validateSingle();
-      }else{
-        _this.validateFile();
-      }
-      
-      }
+        if (this.state.mode.value === _single) {
+          _this.validateSingle();
+        }else{
+          _this.validateFile();
+        }
+    }
 
     renderHeader(){
       let header = [];
@@ -161,7 +193,7 @@ class IbanChecker extends Component {
       }
 
     renderResult(){
-      let data = this.state.data;//[{account_number:"FR12 1234 567 890",checkList: [{check:"IBAN Length Check",status:"Failed", message:"The IBAN's length you entered doesn't match France's IBAN length"}]}];
+      let data = this.state.data;
       let resBody = [];
       let resHeader = [];
       if (!data || data.length === 0) return "";
@@ -193,23 +225,6 @@ class IbanChecker extends Component {
         </ul>
       )
       return resHeader;
-    }
-
-    handleChange=(e)=>{
-        if (e!== null) {
-            this.setState({
-                mode: e,
-                data:[]
-            })
-        }
-    }
-
-    handleInputChange=(e)=>{
-        if (e!== null) {
-            this.setState({
-                account_number: $(e.currentTarget).val()
-            })
-        }
     }
    
     render() {
